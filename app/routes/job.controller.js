@@ -6,20 +6,20 @@ let collectionJobs = []
 module.exports = routes => {
 
     routes.get('/jobs/:id', (req, res) => {
-        collectionJobs.forEach((job) => {
-            if(job.id == req.params.id)
-                res.send(job)
-        })
+        let job = collectionJobs.find(job => job.id == req.params.id);
+
+        if (job) res.status(200).send(job)
+        res.status(404).send('Job not found')
     })
 
     routes.get('/jobs/', (req, res) => {
         res.send(collectionJobs)
     })
 
-    routes.post('/jobs', [check('name').isLength({min:5})], (req, res) => {
-        if(!validationResult(req).isEmpty())
+    routes.post('/jobs', [check('name').isLength({ min: 5 })], (req, res) => {
+        if (!validationResult(req).isEmpty())
             return res.status(422).send('Invalid name')
-        try{
+        try {
             let newJob = new jobModel.Job(
                 req.body.id,
                 req.body.name,
@@ -36,41 +36,41 @@ module.exports = routes => {
 
             res.send(newJob)
         }
-        catch(error)
-            { return res.status(500).send(error) }
+        catch (error) { return res.status(500).send(error) }
     })
 
     routes.put('/jobs/:id', (req, res) => {
-        collectionJobs.forEach((job) => {
-            if(job.id == req.params.id){
-                try{
+        collectionJobs.forEach((job, index) => {
+            if (job.id == req.params.id) {
+                try {
                     job.name = req.body.name,
-                    job.salary = req.body.salary,
-                    job.description = req.body.description,
-                    job.skills = req.body.skills,
-                    job.differentials = req.body.differentials,
-                    job.isPcd = req.body.isPcd,
-                    job.isActive = req.body.isActive
+                        job.salary = req.body.salary,
+                        job.description = req.body.description,
+                        job.skills = req.body.skills,
+                        job.differentials = req.body.differentials,
+                        job.isPcd = req.body.isPcd,
+                        job.isActive = req.body.isActive
 
+                    collectionJobs[index] = job
                     res.send(job)
                 }
-                catch(error)
-                    { return res.status(500).send(error) }
+                catch (error) { return res.status(500).send(error) }
             }
         })
+        res.status(404).send('Job not found')
     })
 
     routes.delete('/jobs/:id', (req, res) => {
-        try{
+        try {
             collectionJobs.forEach((job, index) => {
-                if(job.id == req.params.id){
+                if (job.id == req.params.id) {
                     collectionJobs.splice(index, 1)
-                    return res.send()
+                    return res.send('Deleted successfully')
                 }
             })
+            res.status(404).send('Job not found')
         }
-        catch(error)
-            { return res.status(500).send(error) }
+        catch (error) { return res.status(500).send(error) }
     })
 
 }
