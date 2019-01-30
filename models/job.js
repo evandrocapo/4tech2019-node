@@ -1,5 +1,6 @@
 class Job {
-    constructor (name, salary, description, skills, area, differentials, isPcd, isActive) {
+    constructor (id, name, salary, description, skills, area, differentials, isPcd, isActive) {
+        this.id = id
         this.name = name
         this.salary = salary
         this.description = description

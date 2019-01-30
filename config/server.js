@@ -16,7 +16,7 @@ server.use(bodyParser.urlencoded({ extended: false }));
 server.use(bodyParser.json());
 
 consign()
-    .include('./app/')
+    .include('./app/routes')
     .into(server)
 
 module.exports = server
