@@ -8,8 +8,10 @@ module.exports = routes => {
     routes.get('/jobs/:id', (req, res) => {
         let job = collectionJobs.find(job => job.id == req.params.id);
 
-        if (job) res.status(200).send(job)
-        res.status(404).send('Job not found')
+        if (job)
+            res.status(200).send(job)
+        else
+            res.status(404).send('Job not found')
     })
 
     routes.get('/jobs/', (req, res) => {
@@ -40,35 +42,40 @@ module.exports = routes => {
     })
 
     routes.put('/jobs/:id', (req, res) => {
-        collectionJobs.forEach((job, index) => {
-            if (job.id == req.params.id) {
-                try {
-                    job.name = req.body.name,
-                        job.salary = req.body.salary,
-                        job.description = req.body.description,
-                        job.skills = req.body.skills,
-                        job.differentials = req.body.differentials,
-                        job.isPcd = req.body.isPcd,
-                        job.isActive = req.body.isActive
+        let hasJob = false;
 
-                    collectionJobs[index] = job
+        collectionJobs.forEach((job) => {
+            if (job.id == req.params.id) {
+                hasJob = true
+                try {
+                    job.name = req.body.name
+                    job.salary = req.body.salary
+                    job.description = req.body.description
+                    job.skills = req.body.skills
+                    job.differentials = req.body.differentials
+                    job.isPcd = req.body.isPcd
+                    job.isActive = req.body.isActive
+
                     res.send(job)
                 }
                 catch (error) { return res.status(500).send(error) }
             }
         })
-        res.status(404).send('Job not found')
+        if (!hasJob) res.status(404).send('Job not found')
     })
 
     routes.delete('/jobs/:id', (req, res) => {
         try {
+            let hasJob = false;
+
             collectionJobs.forEach((job, index) => {
                 if (job.id == req.params.id) {
+                    hasJob = true;
                     collectionJobs.splice(index, 1)
                     return res.send('Deleted successfully')
                 }
             })
-            res.status(404).send('Job not found')
+            if (!hasJob) res.status(404).send('Job not found')
         }
         catch (error) { return res.status(500).send(error) }
     })
