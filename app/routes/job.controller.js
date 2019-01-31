@@ -5,23 +5,37 @@ let collectionJobs = []
 
 module.exports = routes => {
 
+    const db = routes.config.firebaseConfig.collection('jobs')
+
     routes.get('/jobs/:id', (req, res) => {
-        let job = collectionJobs.find(job => job.id == req.params.id);
-
-        if (job)
-            res.status(200).send(job)
-        else
-            res.status(404).send('Job not found')
+        collectionJobs.forEach((job) => {
+            if(job.id == req.params.id)
+                res.send(job)
+        })
     })
 
-    routes.get('/jobs/', (req, res) => {
-        res.send(collectionJobs)
-    })
-
-    routes.post('/jobs', [check('name').isLength({ min: 5 })], (req, res) => {
-        if (!validationResult(req).isEmpty())
-            return res.status(422).send('Invalid name')
+    routes.get('/jobs/', async (req, res) => {
         try {
+            let docs = await db.get()
+            let jobs = []
+            docs.forEach(doc => {
+                let data = doc.data()
+
+                jobs.push({
+                    name: data.name
+                })
+            })
+            return res.send(jobs)
+
+        } catch (error) {
+            return res.status(500).send(error)
+        }
+    })
+
+    routes.post('/jobs', [check('name').isLength({min:5}), check('salary')], (req, res) => {
+        if(!validationResult(req).isEmpty())
+            return res.status(422).send('Invalid name')
+        try{
             let newJob = new jobModel.Job(
                 req.body.id,
                 req.body.name,
@@ -38,46 +52,41 @@ module.exports = routes => {
 
             res.send(newJob)
         }
-        catch (error) { return res.status(500).send(error) }
+        catch(error)
+            { return res.status(500).send(error) }
     })
 
     routes.put('/jobs/:id', (req, res) => {
-        let hasJob = false;
-
         collectionJobs.forEach((job) => {
-            if (job.id == req.params.id) {
-                hasJob = true
-                try {
-                    job.name = req.body.name
-                    job.salary = req.body.salary
-                    job.description = req.body.description
-                    job.skills = req.body.skills
-                    job.differentials = req.body.differentials
-                    job.isPcd = req.body.isPcd
+            if(job.id == req.params.id){
+                try{
+                    job.name = req.body.name,
+                    job.salary = req.body.salary,
+                    job.description = req.body.description,
+                    job.skills = req.body.skills,
+                    job.differentials = req.body.differentials,
+                    job.isPcd = req.body.isPcd,
                     job.isActive = req.body.isActive
 
                     res.send(job)
                 }
-                catch (error) { return res.status(500).send(error) }
+                catch(error)
+                    { return res.status(500).send(error) }
             }
         })
-        if (!hasJob) res.status(404).send('Job not found')
     })
 
     routes.delete('/jobs/:id', (req, res) => {
-        try {
-            let hasJob = false;
-
+        try{
             collectionJobs.forEach((job, index) => {
-                if (job.id == req.params.id) {
-                    hasJob = true;
+                if(job.id == req.params.id){
                     collectionJobs.splice(index, 1)
-                    return res.send('Deleted successfully')
+                    return res.send()
                 }
             })
-            if (!hasJob) res.status(404).send('Job not found')
         }
-        catch (error) { return res.status(500).send(error) }
+        catch(error)
+            { return res.status(500).send(error) }
     })
 
 }
