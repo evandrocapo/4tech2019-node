@@ -1,92 +1,82 @@
-const jobModel = require('../../models/job')
 const { check, validationResult } = require('express-validator/check')
-
-let collectionJobs = []
 
 module.exports = routes => {
 
     const db = routes.config.firebaseConfig.collection('jobs')
 
-    routes.get('/jobs/:id', (req, res) => {
-        collectionJobs.forEach((job) => {
-            if(job.id == req.params.id)
-                res.send(job)
-        })
+    routes.get('/jobs/:id', async (req, res) => {
+        try {
+            let job = await db.doc(req.params.id).get()
+
+            if (job.exists)
+                return res.send(extractJob(job))
+            else
+                return res.status(404).send('Job not found')
+        } catch (error) {
+            return res.status(500).send(error)
+        }
     })
 
     routes.get('/jobs/', async (req, res) => {
         try {
             let docs = await db.get()
             let jobs = []
+
             docs.forEach(doc => {
-                let data = doc.data()
-
-                jobs.push({
-                    name: data.name
-                })
+                jobs.push(extractJob(doc))
             })
-            return res.send(jobs)
 
+            return res.send(jobs)
         } catch (error) {
             return res.status(500).send(error)
         }
     })
 
-    routes.post('/jobs', [check('name').isLength({min:5}), check('salary')], (req, res) => {
-        if(!validationResult(req).isEmpty())
+    routes.post('/jobs', [check('name').isLength({ min: 5 })], async (req, res) => {
+        if (!validationResult(req).isEmpty())
             return res.status(422).send('Invalid name')
-        try{
-            let newJob = new jobModel.Job(
-                req.body.id,
-                req.body.name,
-                req.body.salary,
-                req.body.description,
-                req.body.skills,
-                req.body.area,
-                req.body.differentials,
-                req.body.isPcd,
-                req.body.isActive
-            )
+        try {
+            await db.doc().set(req.body)
 
-            collectionJobs.push(newJob)
-
-            res.send(newJob)
+            return res.send('Job added successfully')
         }
-        catch(error)
-            { return res.status(500).send(error) }
-    })
-
-    routes.put('/jobs/:id', (req, res) => {
-        collectionJobs.forEach((job) => {
-            if(job.id == req.params.id){
-                try{
-                    job.name = req.body.name,
-                    job.salary = req.body.salary,
-                    job.description = req.body.description,
-                    job.skills = req.body.skills,
-                    job.differentials = req.body.differentials,
-                    job.isPcd = req.body.isPcd,
-                    job.isActive = req.body.isActive
-
-                    res.send(job)
-                }
-                catch(error)
-                    { return res.status(500).send(error) }
-            }
-        })
-    })
-
-    routes.delete('/jobs/:id', (req, res) => {
-        try{
-            collectionJobs.forEach((job, index) => {
-                if(job.id == req.params.id){
-                    collectionJobs.splice(index, 1)
-                    return res.send()
-                }
-            })
+        catch (error) {
+            return res.status(500).send(error)
         }
-        catch(error)
-            { return res.status(500).send(error) }
     })
 
+    routes.put('/jobs/:id', async (req, res) => {
+        try {
+            await db.doc(req.params.id).update(req.body)
+            return res.send(`A vaga ${req.params.id} foi atualizada com sucesso`)
+        }
+        catch (error) {
+            return res.status(500).send(error)
+        }
+    })
+
+    routes.delete('/jobs/:id', async (req, res) => {
+        try {
+            await db.doc(req.params.id).delete()
+            return res.send(`A vaga ${req.params.id} foi removida com sucesso`)
+        } catch (error) {
+            return res.status(500).send(error)
+        }
+    })
+
+    extractJob = job => {
+        let v = job.data();
+
+        return {
+            id: job.id,
+            name: v.name,
+            salary: v.salary,
+            description: v.description,
+            skills: v.skills,
+            area: v.area,
+            differentials: v.differentials,
+            isPcd: v.isPcd,
+            isActive: v.isActive
+        }
+    }
 }
