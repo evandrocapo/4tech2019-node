@@ -1,10 +1,11 @@
 const { check, validationResult } = require('express-validator/check')
+const tokenValidator = require('../../config/security/tokenValidator')
 
 module.exports = routes => {
 
     const db = routes.config.firebaseConfig.collection('jobs')
 
-    routes.get('/jobs/:id', async (req, res) => {
+    routes.get('/jobs/:id', tokenValidator, async (req, res) => {
         try {
             let job = await db.doc(req.params.id).get()
 
@@ -17,7 +18,7 @@ module.exports = routes => {
         }
     })
 
-    routes.get('/jobs/', async (req, res) => {
+    routes.get('/jobs/', tokenValidator, async (req, res) => {
         try {
             let docs = await db.get()
             let jobs = []
@@ -32,7 +33,7 @@ module.exports = routes => {
         }
     })
 
-    routes.post('/jobs', [check('name').isLength({ min: 5 })], async (req, res) => {
+    routes.post('/jobs', [tokenValidator, check('name').isLength({ min: 5 })], async (req, res) => {
         if (!validationResult(req).isEmpty())
             return res.status(422).send('Invalid name')
         try {
