@@ -1,4 +1,3 @@
-const { check, validationResult } = require('express-validator/check')
 const tokenValidator = require('../../config/security/tokenValidator')
 
 module.exports = routes => {
@@ -33,9 +32,7 @@ module.exports = routes => {
         }
     })
 
-    routes.post('/jobs', [tokenValidator, check('name').isLength({ min: 5 })], async (req, res) => {
-        if (!validationResult(req).isEmpty())
-            return res.status(422).send('Invalid name')
+    routes.post('/jobs', tokenValidator, async (req, res) => {
         try {
             await db.doc().set(req.body)
 
