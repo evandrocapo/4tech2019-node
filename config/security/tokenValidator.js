@@ -13,11 +13,9 @@ const validateToken = (req, res, next) => {
         if (error) return res.status(500).send({ auth: false, message: 'Failed to decode' })
 
         let data = await db.collection('users').get()
-        data.docs.find(user => {
-            if (user.id === decoded.id)
-                next()
-        })
-        return res.status(401).send({ auth: false, message: 'Invalid token' })
+        let isValidUser = data.docs.find(user => user.id === decoded.id)
+        if (isValidUser) next()
+        else return res.status(401).send({ auth: false, message: 'Invalid token' })
     })
 }
 
