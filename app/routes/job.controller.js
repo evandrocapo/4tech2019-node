@@ -37,9 +37,9 @@ module.exports = routes => {
     // routes.post('/jobs', tokenValidator, async (req, res) => {
     routes.post('/jobs', async (req, res) => {
         try {
-            await db.doc().set(req.body)
+            const result = await db.add(req.body)
 
-            return res.send('Job added successfully')
+            return res.send(result.id)
         }
         catch (error) {
             return res.status(500).send(error)
