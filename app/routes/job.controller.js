@@ -1,11 +1,10 @@
-// const tokenValidator = require('../../config/security/tokenValidator')
+const tokenValidator = require('../../config/security/tokenValidator')
 
 module.exports = routes => {
 
     const db = routes.config.firebaseConfig.collection('jobs')
 
-    // routes.get('/jobs/:id', tokenValidator, async (req, res) => {
-    routes.get('/jobs/:id', async (req, res) => {
+    routes.get('/jobs/:id', tokenValidator, async (req, res) => {
         try {
             let job = await db.doc(req.params.id).get()
 
@@ -18,8 +17,7 @@ module.exports = routes => {
         }
     })
 
-    // routes.get('/jobs/', tokenValidator, async (req, res) => {
-    routes.get('/jobs/', async (req, res) => {
+    routes.get('/jobs/', tokenValidator, async (req, res) => {
         try {
             let docs = await db.get()
             let jobs = []
@@ -34,8 +32,7 @@ module.exports = routes => {
         }
     })
 
-    // routes.post('/jobs', tokenValidator, async (req, res) => {
-    routes.post('/jobs', async (req, res) => {
+    routes.post('/jobs', tokenValidator, async (req, res) => {
         try {
             const result = await db.add(req.body)
 
@@ -46,8 +43,7 @@ module.exports = routes => {
         }
     })
 
-    // routes.put('/jobs/:id', tokenValidator, async (req, res) => {
-    routes.put('/jobs/:id', async (req, res) => {
+    routes.put('/jobs/:id', tokenValidator, async (req, res) => {
         try {
             await db.doc(req.params.id).update(req.body)
             return res.send(`A vaga ${req.params.id} foi atualizada com sucesso`)
@@ -57,8 +53,7 @@ module.exports = routes => {
         }
     })
 
-    // routes.delete('/jobs/:id', tokenValidator, async (req, res) => {
-    routes.delete('/jobs/:id', async (req, res) => {
+    routes.delete('/jobs/:id', tokenValidator, async (req, res) => {
         try {
             await db.doc(req.params.id).delete()
             return res.send(`A vaga ${req.params.id} foi removida com sucesso`)
